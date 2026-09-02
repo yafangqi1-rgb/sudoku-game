@@ -135,7 +135,7 @@ function hint() {
   if (state.givens[r][c] || state.puzzle[r][c] === state.solution[r][c]) return;
   state.puzzle[r][c] = state.solution[r][c];
   state.notes[r][c] = [];
-  state.history.push({ r, c, prev: 0, prevNotes: [] });
+  state.history.push({ r, c, prev: 0, prevNotes: [], next: state.solution[r][c], nextNotes: [] });
   sound.place();
   afterMove();
 }
