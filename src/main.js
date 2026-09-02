@@ -18,6 +18,7 @@ import { bindKeyboard } from './input.js';
 import { initTheme, cycleTheme } from './theme.js';
 import { sound } from './sound.js';
 import { randomTaunt } from './taunts.js';
+import { calcIQ, iqLabel } from './iq.js';
 
 const N = 9;
 const $ = (id) => document.getElementById(id);
@@ -311,6 +312,7 @@ function win() {
   $('endMistakes').textContent = m;
   $('endHints').textContent = h;
   $('endPowerups').textContent = p;
+  showIQ();
 
   show($('endModal'));
 }
@@ -327,7 +329,25 @@ function lose() {
   $('endMistakes').textContent = `${state.mistakes}/${MAX_MISTAKES}`;
   $('endHints').textContent = state.hintsUsed;
   $('endPowerups').textContent = state.powerupsUsed;
+  showIQ();
+
   show($('endModal'));
+}
+
+// ---------- 智商评分(娱乐向) ----------
+function showIQ() {
+  const iq = calcIQ(state);
+  const { emoji, label } = iqLabel(iq);
+  const box = $('iqBox');
+  const scoreEl = $('iqValue').parentElement; // .iq-score
+  $('iqValue').textContent = iq;
+  $('iqEmoji').textContent = emoji;
+  $('iqDesc').textContent = label;
+  box.hidden = false;
+  // 重触发弹跳动画
+  scoreEl.classList.remove('bump');
+  void scoreEl.offsetWidth;
+  scoreEl.classList.add('bump');
 }
 
 function recordIfNeeded() {
