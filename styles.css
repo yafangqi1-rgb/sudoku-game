@@ -298,8 +298,7 @@ body {
   100% { transform: scale(1); opacity: 1; }
 }
 .iq-emoji {
-  font-size: 26px;
-  margin: 2px 0;
+  display: none;
 }
 .iq-desc {
   font-size: 14px;
