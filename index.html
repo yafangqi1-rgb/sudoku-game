@@ -42,9 +42,9 @@
     </div>
 
     <div class="powerups">
-      <button id="pwSweep" class="pw-btn" title="排雷: 闪烁所有错误 (S)">
-        <span class="pw-icon">&#128269;</span>
-        <span class="pw-label">排雷</span>
+      <button id="pwAutofill" class="pw-btn" title="自动填: 随机填一个正确答案 (S)">
+        <span class="pw-icon">&#127919;</span>
+        <span class="pw-label">自动填</span>
         <span class="pw-count">2</span>
       </button>
       <button id="pwFreeze" class="pw-btn" title="冻结: 暂停计时30秒 (F)">
@@ -132,7 +132,7 @@
         <div class="help-section">
           <h3>&#127918; 道具说明</h3>
           <ul>
-            <li><b>&#128269; 排雷</b>（每局 2 次）：闪烁所有你填错的格子 2 秒，帮你发现错误。快捷键 S</li>
+            <li><b>&#127919; 自动填</b>（每局 2 次）：随机选一个空格，自动填入正确答案，不需要先选中格子。快捷键 S</li>
             <li><b>&#9889; 冻结</b>（每局 1 次）：暂停计时 30 秒，倒计时显示 &#10052;。适合需要长考的时候。快捷键 F</li>
             <li><b>&#128737;&#65039; 护盾</b>（每局 1 次）：激活后，下次填错自动抵消，不扣错误次数。快捷键 D</li>
           </ul>
@@ -145,11 +145,11 @@
         </div>
         <div class="help-section">
           <h3>&#127941; 排行榜</h3>
-          <p>自由模式按难度分别记录 Top 5，含用时、错误、提示、道具数。综合评分 = 基础秒数 + 提示×30 + 道具×20 + 错误×60，越低越好。</p>
+          <p>所有模式（自由 + 闯关）通关后自动记录，按难度/闯关分别记录 Top 5，含用时、错误、提示、道具数。综合评分 = 基础秒数 + 提示×30 + 道具×20 + 错误×60，越低越好。</p>
         </div>
         <div class="help-section">
           <h3>&#9000; 快捷键</h3>
-          <p><b>1-9</b> 填数 &nbsp; <b>0/Backspace</b> 擦除 &nbsp; <b>N</b> 笔记 &nbsp; <b>H</b> 提示 &nbsp; <b>Z</b> 撤销 &nbsp; <b>Y</b> 重做 &nbsp; <b>S/F/D</b> 排雷/冻结/护盾 &nbsp; <b>方向键</b> 移动 &nbsp; <b>?</b> 帮助</p>
+          <p><b>1-9</b> 填数 &nbsp; <b>0/Backspace</b> 擦除 &nbsp; <b>N</b> 笔记 &nbsp; <b>H</b> 提示 &nbsp; <b>Z</b> 撤销 &nbsp; <b>Y</b> 重做 &nbsp; <b>S/F/D</b> 自动填/冻结/护盾 &nbsp; <b>方向键</b> 移动 &nbsp; <b>?</b> 帮助</p>
         </div>
       </div>
       <button id="closeHelp" class="primary">明白了！</button>
