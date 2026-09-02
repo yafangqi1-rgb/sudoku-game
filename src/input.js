@@ -8,7 +8,7 @@ export function bindKeyboard(handler) {
     else if (k === 'h' || k === 'H') { handler('hint'); }
     else if (k === 'z' || k === 'Z') { handler('undo'); }
     else if (k === 'y' || k === 'Y') { handler('redo'); }
-    else if (k === 's' || k === 'S') { handler('powerup', 'sweep'); }
+    else if (k === 's' || k === 'S') { handler('powerup', 'autofill'); }
     else if (k === 'f' || k === 'F') { handler('powerup', 'freeze'); }
     else if (k === 'd' || k === 'D') { handler('powerup', 'shield'); }
     else if (k === '?' || k === '/') { handler('help'); }
