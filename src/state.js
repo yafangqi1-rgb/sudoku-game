@@ -3,23 +3,40 @@ const N = 9;
 
 export const STATUS = { PLAYING: 'playing', WON: 'won', LOST: 'lost' };
 export const MAX_MISTAKES = 3;
+export const MAX_HINTS = 3;
+
+// 道具配置: 每局初始数量
+export const POWERUP_CONFIG = {
+  sweep:  { initial: 2, label: '排雷', icon: '\uD83D\uDD0D' },
+  freeze: { initial: 1, label: '冻结', icon: '\u26A1' },
+  shield: { initial: 1, label: '护盾', icon: '\uD83D\uDEE1\uFE0F' },
+};
 
 export function createState({ puzzle, solution, difficulty }) {
   return {
-    puzzle: puzzle.map(r => r.slice()),          // 当前盘面(含用户填入)
-    givens: puzzle.map(row => row.map(v => v !== 0)), // 给定值(不可改)
+    puzzle: puzzle.map(r => r.slice()),
+    givens: puzzle.map(row => row.map(v => v !== 0)),
     solution: solution.map(r => r.slice()),
     notes: Array.from({ length: N }, () =>
       Array.from({ length: N }, () => [])),
     difficulty,
     mistakes: 0,
+    hintsUsed: 0,
+    powerupsUsed: 0,
+    powerups: {
+      sweep: POWERUP_CONFIG.sweep.initial,
+      freeze: POWERUP_CONFIG.freeze.initial,
+      shield: POWERUP_CONFIG.shield.initial,
+    },
+    shieldActive: false,
+    frozenUntil: 0,   // timestamp, 0 = not frozen
     elapsedMs: 0,
     startedAt: Date.now(),
-    selected: null,        // {r,c}
+    selected: null,
     noteMode: false,
     status: STATUS.PLAYING,
-    history: [],           // 用于撤销
-    future: [],           // 用于重做
+    history: [],
+    future: [],
   };
 }
 
@@ -27,7 +44,7 @@ export function setValue(state, r, c, num) {
   if (state.givens[r][c] || state.status !== STATUS.PLAYING) return false;
   const prev = state.puzzle[r][c];
   const prevNotes = state.notes[r][c].slice();
-  if (prev === num) num = 0; // 再次按同数 = 清除
+  if (prev === num) num = 0;
   state.puzzle[r][c] = num;
   if (num !== 0) state.notes[r][c] = [];
   state.history.push({ r, c, prev, prevNotes, next: num, nextNotes: state.notes[r][c].slice() });
@@ -56,6 +73,7 @@ export function undo(state) {
   state.future.push(last);
   return true;
 }
+
 export function redo(state) {
   if (!state.future.length) return false;
   const nxt = state.future.pop();
@@ -74,6 +92,14 @@ export function clearCell(state, r, c) {
   state.notes[r][c] = [];
   state.history.push({ r, c, prev, prevNotes, next: 0, nextNotes: [] });
   state.future = [];
+  return true;
+}
+
+export function usePowerup(state, type) {
+  if (state.status !== STATUS.PLAYING) return false;
+  if (!state.powerups[type] || state.powerups[type] <= 0) return false;
+  state.powerups[type]--;
+  state.powerupsUsed++;
   return true;
 }
 
