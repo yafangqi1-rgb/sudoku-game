@@ -31,13 +31,23 @@ function generateFull() {
 }
 
 // 难度 -> 保留的给定数(挖空数 = 81 - givens)
+// 标准参考: 入门55+/简单45-50/中等32-36/困难25-30
 const DIFF = {
-  easy: 40,   // 挖 41
-  medium: 32, // 挖 49
-  hard: 26,   // 挖 55
+  beginner: 55,  // 入门: 挖 26 — 新手友好
+  easy: 50,      // 简单: 挖 31 — 休闲放松
+  medium: 36,    // 中等: 挖 45 — 有点意思
+  hard: 28,      // 困难: 挖 53 — 烧脑挑战
 };
 
-// 挖空:随机移除单元格,保证剩余仍有唯一解
+// 闯关模式: 20 关, 从超简单逐步加难
+export const MAX_LEVEL = 20;
+// Level 1 = 60 给定(只挖21格, 超简单)
+// Level 20 = 30 给定(挖51格, 接近困难)
+export function levelGivens(level) {
+  return Math.max(30, Math.round(60 - (level - 1) * 1.6));
+}
+
+// 挖空: 随机移除单元格, 保证剩余仍有唯一解
 function dig(board, givens) {
   const puzzle = clone(board);
   const cells = shuffle(Array.from({ length: N * N }, (_, i) => i));
@@ -51,16 +61,25 @@ function dig(board, givens) {
     if (countSolutions(puzzle, 2) === 1) {
       remaining--;
     } else {
-      puzzle[r][c] = backup; // 去掉会多解,恢复
+      puzzle[r][c] = backup; // 去掉会多解, 恢复
     }
   }
   return puzzle;
 }
 
+// 自由模式: 按难度生成
 export function generatePuzzle(difficulty = 'medium') {
   const solution = generateFull();
   const puzzle = dig(solution, DIFF[difficulty] || DIFF.medium);
   return { puzzle, solution, difficulty };
 }
 
-export const DIFFICULTIES = ['easy', 'medium', 'hard'];
+// 闯关模式: 按关卡生成
+export function generateLevel(level) {
+  const solution = generateFull();
+  const givens = levelGivens(level);
+  const puzzle = dig(solution, givens);
+  return { puzzle, solution, difficulty: 'level', level };
+}
+
+export const DIFFICULTIES = ['beginner', 'easy', 'medium', 'hard'];
