@@ -28,21 +28,22 @@ export function setValue(state, r, c, num) {
   const prev = state.puzzle[r][c];
   const prevNotes = state.notes[r][c].slice();
   if (prev === num) num = 0; // 再次按同数 = 清除
-  // 记入历史(撤销)
-  state.history.push({ r, c, prev, prevNotes });
-  state.future = [];
   state.puzzle[r][c] = num;
   if (num !== 0) state.notes[r][c] = [];
+  state.history.push({ r, c, prev, prevNotes, next: num, nextNotes: state.notes[r][c].slice() });
+  state.future = [];
   return true;
 }
 
 export function toggleNote(state, r, c, num) {
   if (state.givens[r][c] || state.puzzle[r][c] !== 0) return false;
+  const prev = state.puzzle[r][c];
+  const prevNotes = state.notes[r][c].slice();
   const notes = state.notes[r][c];
   const i = notes.indexOf(num);
   if (i >= 0) notes.splice(i, 1);
   else notes.push(num);
-  state.history.push({ r, c, prev: state.puzzle[r][c], prevNotes: notes.slice() });
+  state.history.push({ r, c, prev, prevNotes, next: prev, nextNotes: notes.slice() });
   state.future = [];
   return true;
 }
@@ -58,8 +59,8 @@ export function undo(state) {
 export function redo(state) {
   if (!state.future.length) return false;
   const nxt = state.future.pop();
-  // 还原到该操作之后的状态较复杂,这里做简化:仅重做值设置
-  state.puzzle[nxt.r][nxt.c] = nxt.prev === 0 ? 0 : nxt.prev;
+  state.puzzle[nxt.r][nxt.c] = nxt.next;
+  state.notes[nxt.r][nxt.c] = nxt.nextNotes;
   state.history.push(nxt);
   return true;
 }
@@ -69,10 +70,10 @@ export function clearCell(state, r, c) {
   const prev = state.puzzle[r][c];
   const prevNotes = state.notes[r][c].slice();
   if (prev === 0 && prevNotes.length === 0) return false;
-  state.history.push({ r, c, prev, prevNotes });
-  state.future = [];
   state.puzzle[r][c] = 0;
   state.notes[r][c] = [];
+  state.history.push({ r, c, prev, prevNotes, next: 0, nextNotes: [] });
+  state.future = [];
   return true;
 }
 
