@@ -337,11 +337,10 @@ function lose() {
 // ---------- 智商评分(娱乐向) ----------
 function showIQ() {
   const iq = calcIQ(state);
-  const { emoji, label } = iqLabel(iq);
+  const { label } = iqLabel(iq);
   const box = $('iqBox');
   const scoreEl = $('iqValue').parentElement; // .iq-score
   $('iqValue').textContent = iq;
-  $('iqEmoji').textContent = emoji;
   $('iqDesc').textContent = label;
   box.hidden = false;
   // 重触发弹跳动画
