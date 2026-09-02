@@ -1,18 +1,19 @@
-// storage.js — 本地存档 / 排行榜 / 设置
+// storage.js — 本地存档 / 排行榜 / 关卡进度 / 设置
 const KEY = 'sudoku.save';
 const SCORE_KEY = 'sudoku.scores';
 const SET_KEY = 'sudoku.settings';
 const NAME_KEY = 'sudoku.player';
+const LEVEL_KEY = 'sudoku.levels';
 const MAX_RECORDS = 5;
 
 export function saveGame(state) {
   try {
     const data = {
       puzzle: state.puzzle, givens: state.givens, solution: state.solution,
-      notes: state.notes, difficulty: state.difficulty, mistakes: state.mistakes,
-      hintsUsed: state.hintsUsed, powerupsUsed: state.powerupsUsed,
-      powerups: state.powerups, shieldActive: state.shieldActive,
-      frozenUntil: state.frozenUntil,
+      notes: state.notes, difficulty: state.difficulty, level: state.level || null,
+      mistakes: state.mistakes, hintsUsed: state.hintsUsed,
+      powerupsUsed: state.powerupsUsed, powerups: state.powerups,
+      shieldActive: state.shieldActive, frozenUntil: state.frozenUntil,
       elapsedMs: state.elapsedMs, status: state.status,
     };
     localStorage.setItem(KEY, JSON.stringify(data));
@@ -37,6 +38,7 @@ export function getPlayerName() {
 export function setPlayerName(name) {
   try { localStorage.setItem(NAME_KEY, name); } catch (e) {}
 }
+export function hasName() { return !!getPlayerName(); }
 
 // ---- 排行榜: 每难度 Top5, 含完整统计 ----
 export function getScores() {
@@ -71,6 +73,47 @@ export function recordScore(difficulty, { time, mistakes, hints, powerups, name 
   scores[difficulty] = scores[difficulty].slice(0, MAX_RECORDS);
   try { localStorage.setItem(SCORE_KEY, JSON.stringify(scores)); } catch (e) {}
   return scores[difficulty].includes(entry);
+}
+
+// ---- 关卡进度 ----
+// { 1: { completed: true, bestTime: 60000, stars: 3 }, 2: { ... }, ... }
+export function getLevelProgress() {
+  try {
+    return JSON.parse(localStorage.getItem(LEVEL_KEY)) || {};
+  } catch (e) { return {}; }
+}
+
+export function getLevelData(level) {
+  const all = getLevelProgress();
+  return all[level] || null;
+}
+
+export function recordLevelResult(level, { time, mistakes, hints, powerups }) {
+  const all = getLevelProgress();
+  const stars = calcStars(mistakes, hints, powerups);
+  const existing = all[level] || {};
+  // 取最佳时间和最高星级
+  const bestTime = existing.bestTime ? Math.min(existing.bestTime, time) : time;
+  const bestStars = Math.max(existing.stars || 0, stars);
+  all[level] = { completed: true, bestTime, stars: bestStars };
+  try { localStorage.setItem(LEVEL_KEY, JSON.stringify(all)); } catch (e) {}
+  return all[level];
+}
+
+// 星级: 3星=完美(0错误0提示0道具), 2星=优秀(≤1错误或≤1提示), 1星=通关
+export function calcStars(mistakes, hints, powerups) {
+  if (mistakes === 0 && hints === 0 && powerups === 0) return 3;
+  if (mistakes <= 1 && hints <= 1) return 2;
+  return 1;
+}
+
+// 当前解锁的最高关卡(第一个未通关的)
+export function getUnlockedLevel() {
+  const all = getLevelProgress();
+  for (let i = 1; i <= 20; i++) {
+    if (!all[i] || !all[i].completed) return i;
+  }
+  return 20; // 全通关后可重玩任意关
 }
 
 // ---- 设置 ----
