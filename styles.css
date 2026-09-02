@@ -18,7 +18,7 @@
   --note: #6b7280;
   --shadow: 0 2px 10px rgba(31,36,51,.08);
   --radius: 14px;
-  --pw-sweep: #6c5ce7;
+  --pw-autofill: #6c5ce7;
   --pw-freeze: #0984e3;
   --pw-shield: #00b894;
   --gold: #f0a500;
@@ -43,7 +43,7 @@
   --accent-text: #0c1320;
   --note: #9aa1ad;
   --shadow: 0 2px 10px rgba(0,0,0,.4);
-  --pw-sweep: #a29bfe;
+  --pw-autofill: #a29bfe;
   --pw-freeze: #74b9ff;
   --pw-shield: #55efc4;
   --gold: #fdcb6e;
@@ -121,14 +121,14 @@ body {
 .cell.bb { box-shadow: inset 0 -2px 0 var(--line-strong); }
 .cell.rb.bb { box-shadow: inset -2px 0 0 var(--line-strong), inset 0 -2px 0 var(--line-strong); }
 
-/* 排雷闪烁 */
-.cell.sweep-flash {
-  animation: sweepPulse 0.4s ease-in-out infinite !important;
+/* 自动填高亮 */
+.cell.autofill-flash {
+  animation: autofillPulse 0.5s ease-in-out 3 !important;
   z-index: 2;
 }
-@keyframes sweepPulse {
-  0%, 100% { background: var(--conflict-bg); color: var(--conflict); transform: scale(1); }
-  50% { background: #fff3cd; color: #856404; transform: scale(1.08); }
+@keyframes autofillPulse {
+  0%, 100% { background: var(--surface); transform: scale(1); }
+  50% { background: #d4f5dd; color: #00b894; transform: scale(1.12); }
 }
 
 /* 工具栏 */
@@ -172,8 +172,8 @@ body {
   font-size: 12px; font-weight: 700; display: grid; place-items: center;
   padding: 0 5px; line-height: 1;
 }
-.pw-btn#pwSweep { border-color: var(--pw-sweep); }
-.pw-btn#pwSweep .pw-count { background: var(--pw-sweep); }
+.pw-btn#pwAutofill { border-color: var(--pw-autofill); }
+.pw-btn#pwAutofill .pw-count { background: var(--pw-autofill); }
 .pw-btn#pwFreeze { border-color: var(--pw-freeze); }
 .pw-btn#pwFreeze .pw-count { background: var(--pw-freeze); }
 .pw-btn#pwShield { border-color: var(--pw-shield); }
@@ -257,7 +257,7 @@ body {
 .score-row .badges { display: flex; gap: 4px; flex-wrap: wrap; }
 .score-row .badge-err { color: var(--conflict); font-size: 11px; }
 .score-row .badge-hint { color: var(--gold); font-size: 11px; }
-.score-row .badge-pw { color: var(--pw-sweep); font-size: 11px; }
+.score-row .badge-pw { color: var(--pw-autofill); font-size: 11px; }
 .score-row .badge-perfect { color: var(--pw-shield); font-size: 11px; font-weight: 700; }
 .score-empty { text-align: center; color: var(--text-muted); font-size: 12px; padding: 8px; }
 
