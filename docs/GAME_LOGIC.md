@@ -6,7 +6,7 @@
 > - **仓库**：<https://github.com/yafangqi1-rgb/sudoku-game>
 > - **线上地址**：<https://yafangqi1-rgb.github.io/sudoku-game/>
 > - **技术栈**：原生 HTML + CSS + JavaScript(ES Module),无构建,纯静态
-> - **最后更新**:2026-09-02(v2.2 智商评分文案改版)
+> - **最后更新**:2026-09-02(v2.2.1 修复自由挑战面板空白)
 
 ---
 
@@ -348,6 +348,12 @@ main.js 中的核心动作函数:
 ## 16. 更新日志 ✅
 
 按时间倒序,每次上线改动记录于此:
+
+### v2.2.1(2026-09-02)— 修复自由挑战面板空白
+- Bug:新游戏弹窗点"自由挑战"Tab 后面板空白,只见"取消"按钮。
+- 根因:`panelFree` 初始带 `hidden` 属性,而 `switchTab()` 只切换 `active` class 从不移除 `hidden`;
+  叠加 v1.1 的 `[hidden]{display:none!important}` 修复后,`hidden` 优先级压过 `.tab-panel.active{display:block}`,面板永久隐藏。
+- 修复:①去掉 `panelFree` 的初始 `hidden` 属性(显隐交给 `.tab-panel` 类);②`switchTab()` 双保险,同步将两个面板的 `hidden` 置 false。
 
 ### v2.2(2026-09-02)— 智商评分文案改版
 - 智商公式 v2:基础值上调(入门130/简单140/中等155/困难170,闯关 130+关卡×4),时间惩罚减半,错误/提示/道具扣分减半,新增零失误保底加分(+15/+35)。
