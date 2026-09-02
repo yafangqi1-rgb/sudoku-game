@@ -12,7 +12,7 @@ import {
 } from './storage.js';
 import {
   buildBoard, render, updateMeta, updateNumpad, updatePowerups,
-  showTaunt, showToast, flashWrongCells,
+  showTaunt, showToast,
 } from './ui.js';
 import { bindKeyboard } from './input.js';
 import { initTheme, cycleTheme } from './theme.js';
@@ -107,6 +107,11 @@ function resume() {
   state.hintsUsed = s.hintsUsed || 0;
   state.powerupsUsed = s.powerupsUsed || 0;
   state.powerups = s.powerups || state.powerups;
+  // 迁移旧存档: sweep → autofill
+  if (state.powerups.autofill === undefined) {
+    state.powerups.autofill = state.powerups.sweep ?? 2;
+    delete state.powerups.sweep;
+  }
   state.shieldActive = s.shieldActive || false;
   state.frozenUntil = s.frozenUntil || 0;
   state.elapsedMs = s.elapsedMs || 0;
@@ -182,12 +187,31 @@ function afterMove() {
 }
 
 // ---------- 道具 ----------
-function powerupSweep() {
-  if (!usePowerup(state, 'sweep')) return;
-  flashWrongCells(state, cells, 2000);
-  showTaunt(randomTaunt('powerup'), $('taunt'), '\uD83D\uDD0D');
-  sound.note();
-  draw();
+function powerupAutofill() {
+  if (!usePowerup(state, 'autofill')) return;
+  // 找所有空格, 随机选一个填入正确答案
+  const empties = [];
+  for (let r = 0; r < N; r++)
+    for (let c = 0; c < N; c++)
+      if (state.puzzle[r][c] === 0) empties.push({ r, c });
+  if (empties.length === 0) {
+    showToast('没有空格可填了！', $('toast'));
+    return;
+  }
+  const pick = empties[Math.floor(Math.random() * empties.length)];
+  const prev = state.puzzle[pick.r][pick.c];
+  const prevNotes = state.notes[pick.r][pick.c].slice();
+  state.puzzle[pick.r][pick.c] = state.solution[pick.r][pick.c];
+  state.notes[pick.r][pick.c] = [];
+  state.history.push({ r: pick.r, c: pick.c, prev, prevNotes, next: state.solution[pick.r][pick.c], nextNotes: [] });
+  state.future = [];
+  // 高亮自动填入的格子
+  cells[pick.r][pick.c].classList.add('autofill-flash');
+  setTimeout(() => cells[pick.r][pick.c].classList.remove('autofill-flash'), 1500);
+  clearPeerNotes(pick.r, pick.c, state.solution[pick.r][pick.c]);
+  showTaunt(randomTaunt('powerup'), $('taunt'), '\uD83C\uDFAF');
+  sound.place();
+  afterMove();
 }
 
 function powerupFreeze() {
@@ -249,7 +273,9 @@ function selectCellClick(r, c) {
 function win() {
   state.status = STATUS.WON;
   sound.win();
-  scoreRecorded = false;
+
+  // 立即记录排行榜(含闯关模式), 防止刷新丢失
+  recordIfNeeded();
 
   const h = state.hintsUsed, p = state.powerupsUsed, m = state.mistakes;
   let verdict;
@@ -307,10 +333,9 @@ function lose() {
 function recordIfNeeded() {
   if (scoreRecorded) return;
   scoreRecorded = true;
-  // 关卡模式不记入自由排行榜
-  if (state.level) return;
   const name = getPlayerName() || '匿名玩家';
-  recordScore(state.difficulty, {
+  const diff = state.level ? 'level' : state.difficulty;
+  recordScore(diff, {
     time: state.elapsedMs,
     mistakes: state.mistakes,
     hints: state.hintsUsed,
@@ -330,7 +355,7 @@ bindKeyboard((kind, a, b) => {
   else if (kind === 'move') move(a, b);
   else if (kind === 'help') toggleHelp();
   else if (kind === 'powerup') {
-    if (a === 'sweep') powerupSweep();
+    if (a === 'autofill') powerupAutofill();
     else if (a === 'freeze') powerupFreeze();
     else if (a === 'shield') powerupShield();
   }
@@ -415,7 +440,7 @@ function showScores() {
   list.innerHTML = '';
   let any = false;
 
-  for (const d of DIFFICULTIES) {
+  for (const d of [...DIFFICULTIES, 'level']) {
     const section = document.createElement('div');
     section.className = 'score-section';
     const title = document.createElement('div');
@@ -493,7 +518,7 @@ function init() {
   }
 
   // 道具按钮
-  pwButtons.sweep = $('pwSweep');
+  pwButtons.autofill = $('pwAutofill');
   pwButtons.freeze = $('pwFreeze');
   pwButtons.shield = $('pwShield');
 
@@ -518,7 +543,7 @@ function init() {
   $('noteBtn').onclick = toggleNoteMode;
   $('hintBtn').onclick = hint;
   $('eraseBtn').onclick = erase;
-  $('pwSweep').onclick = powerupSweep;
+  $('pwAutofill').onclick = powerupAutofill;
   $('pwFreeze').onclick = powerupFreeze;
   $('pwShield').onclick = powerupShield;
 
