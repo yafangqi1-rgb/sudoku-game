@@ -266,6 +266,50 @@ body {
   text-align: center; margin: 0; font-size: 15px; font-weight: 600;
   color: var(--accent); min-height: 1.5em;
 }
+/* 智商评分区 */
+.iq-box {
+  text-align: center;
+  padding: 14px 0 6px;
+  margin: 4px 0;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent);
+  border-radius: 10px;
+}
+.iq-label {
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-bottom: 2px;
+}
+.iq-score {
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--accent);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.iq-score #iqValue {
+  display: inline-block;
+}
+.iq-score.bump #iqValue {
+  animation: iqBump 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes iqBump {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.iq-emoji {
+  font-size: 26px;
+  margin: 2px 0;
+}
+.iq-desc {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 260px;
+  margin: 0 auto;
+  line-height: 1.4;
+}
+
 .end-stats {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
 }
