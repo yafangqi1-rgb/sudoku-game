@@ -12,7 +12,7 @@ export const POWERUP_CONFIG = {
   shield: { initial: 1, label: '护盾', icon: '\uD83D\uDEE1\uFE0F' },
 };
 
-export function createState({ puzzle, solution, difficulty }) {
+export function createState({ puzzle, solution, difficulty, level }) {
   return {
     puzzle: puzzle.map(r => r.slice()),
     givens: puzzle.map(row => row.map(v => v !== 0)),
@@ -20,6 +20,7 @@ export function createState({ puzzle, solution, difficulty }) {
     notes: Array.from({ length: N }, () =>
       Array.from({ length: N }, () => [])),
     difficulty,
+    level: level || null,  // null = 自由模式
     mistakes: 0,
     hintsUsed: 0,
     powerupsUsed: 0,
