@@ -7,9 +7,9 @@ export const MAX_HINTS = 3;
 
 // 道具配置: 每局初始数量
 export const POWERUP_CONFIG = {
-  sweep:  { initial: 2, label: '排雷', icon: '\uD83D\uDD0D' },
-  freeze: { initial: 1, label: '冻结', icon: '\u26A1' },
-  shield: { initial: 1, label: '护盾', icon: '\uD83D\uDEE1\uFE0F' },
+  autofill: { initial: 2, label: '自动填', icon: '\uD83C\uDFAF' },
+  freeze:   { initial: 1, label: '冻结', icon: '\u26A1' },
+  shield:   { initial: 1, label: '护盾', icon: '\uD83D\uDEE1\uFE0F' },
 };
 
 export function createState({ puzzle, solution, difficulty, level }) {
@@ -25,7 +25,7 @@ export function createState({ puzzle, solution, difficulty, level }) {
     hintsUsed: 0,
     powerupsUsed: 0,
     powerups: {
-      sweep: POWERUP_CONFIG.sweep.initial,
+      autofill: POWERUP_CONFIG.autofill.initial,
       freeze: POWERUP_CONFIG.freeze.initial,
       shield: POWERUP_CONFIG.shield.initial,
     },
