@@ -15,9 +15,9 @@
       <h1>数独</h1>
     </div>
     <div class="top-actions">
-      <button id="themeBtn" class="icon-btn" title="切换主题" aria-label="切换主题">◐</button>
-      <button id="soundBtn" class="icon-btn" title="音效开关" aria-label="音效开关">♪</button>
-      <button id="scoresBtn" class="icon-btn" title="排行榜" aria-label="排行榜">★</button>
+      <button id="themeBtn" class="icon-btn" title="切换主题" aria-label="切换主题">&#9680;</button>
+      <button id="soundBtn" class="icon-btn" title="音效开关" aria-label="音效开关">&#9834;</button>
+      <button id="scoresBtn" class="icon-btn" title="排行榜" aria-label="排行榜">&#9733;</button>
     </div>
   </header>
 
@@ -31,11 +31,31 @@
     <div id="board" class="board" role="grid" aria-label="数独棋盘"></div>
 
     <div class="tools">
-      <button id="undoBtn" class="tool-btn" title="撤销">↶</button>
-      <button id="redoBtn" class="tool-btn" title="重做">↷</button>
-      <button id="noteBtn" class="tool-btn" title="笔记模式">✎</button>
-      <button id="hintBtn" class="tool-btn" title="提示">💡</button>
-      <button id="eraseBtn" class="tool-btn" title="擦除">⌫</button>
+      <button id="undoBtn" class="tool-btn" title="撤销 (Z)">&#8617;</button>
+      <button id="redoBtn" class="tool-btn" title="重做 (Y)">&#8618;</button>
+      <button id="noteBtn" class="tool-btn" title="笔记模式 (N)">&#9998;</button>
+      <button id="hintBtn" class="tool-btn hint-btn" title="提示 (H)">
+        &#128161;<span class="badge" id="hintCount">3</span>
+      </button>
+      <button id="eraseBtn" class="tool-btn" title="擦除">&#9003;</button>
+    </div>
+
+    <div class="powerups">
+      <button id="pwSweep" class="pw-btn" title="排雷: 闪烁所有错误 (S)">
+        <span class="pw-icon">&#128269;</span>
+        <span class="pw-label">排雷</span>
+        <span class="pw-count">2</span>
+      </button>
+      <button id="pwFreeze" class="pw-btn" title="冻结: 暂停计时30秒 (F)">
+        <span class="pw-icon">&#9889;</span>
+        <span class="pw-label">冻结</span>
+        <span class="pw-count">1</span>
+      </button>
+      <button id="pwShield" class="pw-btn" title="护盾: 免疫下次错误 (D)">
+        <span class="pw-icon">&#128737;&#65039;</span>
+        <span class="pw-label">护盾</span>
+        <span class="pw-count">1</span>
+      </button>
     </div>
 
     <div id="numpad" class="numpad"></div>
@@ -50,6 +70,7 @@
   <div id="newModal" class="modal" hidden>
     <div class="modal-card">
       <h2>开始新游戏</h2>
+      <input id="nameInputNew" class="name-input" placeholder="你的名字（上榜用）" maxlength="12" />
       <div class="diff-pick">
         <button data-diff="easy" class="diff-opt">简单</button>
         <button data-diff="medium" class="diff-opt">中等</button>
@@ -61,8 +82,8 @@
 
   <!-- 排行榜面板 -->
   <div id="scoresModal" class="modal" hidden>
-    <div class="modal-card">
-      <h2>最佳成绩</h2>
+    <div class="modal-card modal-wide">
+      <h2>排行榜</h2>
       <div id="scoresList" class="scores-list"></div>
       <button id="closeScores" class="ghost">关闭</button>
     </div>
@@ -72,13 +93,27 @@
   <div id="endModal" class="modal" hidden>
     <div class="modal-card">
       <h2 id="endTitle">完成!</h2>
-      <p id="endText" class="end-text"></p>
+      <p id="endTaunt" class="end-taunt"></p>
+      <div class="end-stats">
+        <div class="end-stat"><span class="es-label">用时</span><b id="endTime">00:00</b></div>
+        <div class="end-stat"><span class="es-label">错误</span><b id="endMistakes">0</b></div>
+        <div class="end-stat"><span class="es-label">提示</span><b id="endHints">0</b></div>
+        <div class="end-stat"><span class="es-label">道具</span><b id="endPowerups">0</b></div>
+      </div>
+      <input id="nameInput" class="name-input" placeholder="留下名字上榜" maxlength="12" />
       <button id="endNew" class="primary">再来一局</button>
       <button id="endClose" class="ghost">关闭</button>
     </div>
   </div>
 
+  <!-- 小号 toast -->
   <div id="toast" class="toast" hidden></div>
+
+  <!-- 大号弹幕 -->
+  <div id="taunt" class="taunt-popup" hidden>
+    <span class="taunt-emoji"></span>
+    <span class="taunt-text"></span>
+  </div>
 
   <script type="module" src="src/main.js"></script>
 </body>
