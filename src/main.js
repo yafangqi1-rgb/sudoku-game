@@ -1,5 +1,5 @@
 // main.js — 装配一切
-import { generatePuzzle, DIFFICULTIES } from './generator.js';
+import { generatePuzzle, generateLevel, DIFFICULTIES, MAX_LEVEL } from './generator.js';
 import {
   createState, setValue, toggleNote, undo, redo, clearCell,
   selectCell, usePowerup, STATUS, MAX_MISTAKES, MAX_HINTS,
@@ -7,7 +7,8 @@ import {
 import { isSolved } from './validator.js';
 import {
   saveGame, loadGame, clearSave, hasSave, recordScore, getScores,
-  getSettings, saveSettings, getPlayerName, setPlayerName,
+  getSettings, saveSettings, getPlayerName, setPlayerName, hasName,
+  getLevelProgress, getUnlockedLevel, recordLevelResult, calcStars,
 } from './storage.js';
 import {
   buildBoard, render, updateMeta, updateNumpad, updatePowerups,
@@ -20,7 +21,7 @@ import { randomTaunt } from './taunts.js';
 
 const N = 9;
 const $ = (id) => document.getElementById(id);
-const map = { easy: '简单', medium: '中等', hard: '困难' };
+const map = { beginner: '入门', easy: '简单', medium: '中等', hard: '困难', level: '闯关' };
 
 let state, cells, numButtons = {}, pwButtons = {}, tick;
 let scoreRecorded = false;
@@ -28,7 +29,16 @@ let scoreRecorded = false;
 // ---------- 渲染入口 ----------
 function draw() {
   render(state, cells);
-  updateMeta(state, $('diffLabel'), $('mistakeLabel'), $('timerLabel'));
+  // 关卡模式显示"第X关"
+  if (state.level) {
+    $('diffLabel').textContent = `第${state.level}关`;
+  } else {
+    $('diffLabel').textContent = map[state.difficulty] || '中等';
+  }
+  $('mistakeLabel').textContent = `${state.mistakes}/${MAX_MISTAKES}`;
+  $('mistakeLabel').style.color = state.mistakes >= 2 ? 'var(--conflict)' : '';
+  const t = Math.floor(state.elapsedMs / 1000);
+  $('timerLabel').textContent = `${String((t/60)|0).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
   updateNumpad(state, numButtons);
   updatePowerups(state, pwButtons);
   updateHintCount();
@@ -52,7 +62,8 @@ function startTimer() {
         $('timerLabel').textContent = `\u2744 ${left}s`;
       } else {
         state.elapsedMs += 1000;
-        $('timerLabel').textContent = fmt(state.elapsedMs);
+        const t = Math.floor(state.elapsedMs / 1000);
+        $('timerLabel').textContent = `${String((t/60)|0).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
       }
     }
   }, 1000);
@@ -65,8 +76,6 @@ function fmt(ms) {
 
 // ---------- 新局 / 续局 ----------
 function newGame(diff) {
-  const name = ($('nameInputNew').value.trim()) || getPlayerName() || '';
-  if (name) setPlayerName(name);
   const gen = generatePuzzle(diff);
   state = createState(gen);
   clearSave();
@@ -77,10 +86,21 @@ function newGame(diff) {
   showToast(`${map[diff]} 难度，开始！`, $('toast'));
 }
 
+function newLevel(level) {
+  const gen = generateLevel(level);
+  state = createState(gen);
+  clearSave();
+  scoreRecorded = false;
+  startTimer();
+  draw();
+  hide($('newModal'));
+  showToast(`第 ${level} 关，开始！`, $('toast'));
+}
+
 function resume() {
   const s = loadGame();
-  if (!s) return newGame('medium');
-  state = createState({ puzzle: s.puzzle, solution: s.solution, difficulty: s.difficulty });
+  if (!s) { showNewGame(); return; }
+  state = createState({ puzzle: s.puzzle, solution: s.solution, difficulty: s.difficulty, level: s.level });
   state.givens = s.givens;
   state.notes = s.notes || state.notes;
   state.mistakes = s.mistakes;
@@ -238,18 +258,35 @@ function win() {
   else if (m === 0) verdict = '零失误，可圈可点';
   else verdict = randomTaunt('win');
 
-  $('endTitle').textContent = '完成！';
+  // 关卡模式: 记录星级
+  let stars = 0;
+  if (state.level) {
+    const result = recordLevelResult(state.level, {
+      time: state.elapsedMs, mistakes: m, hints: h, powerups: p,
+    });
+    stars = result.stars;
+    // 未通关的后续关卡解锁提示
+    const next = state.level + 1;
+    if (next <= MAX_LEVEL) {
+      setTimeout(() => showToast(`第 ${next} 关已解锁！`, $('toast')), 500);
+    }
+  }
+
+  $('endTitle').textContent = state.level ? `第${state.level}关 通关！` : '完成！';
   $('endTaunt').textContent = verdict;
+  // 星级显示
+  const starsEl = $('endStars');
+  if (state.level && stars) {
+    starsEl.textContent = '\u2B50'.repeat(stars) + '\u2606'.repeat(3 - stars);
+  } else {
+    starsEl.textContent = '';
+  }
   $('endTime').textContent = fmt(state.elapsedMs);
   $('endMistakes').textContent = m;
   $('endHints').textContent = h;
   $('endPowerups').textContent = p;
 
-  const ni = $('nameInput');
-  if (ni) ni.value = getPlayerName();
-
   show($('endModal'));
-  if (ni) setTimeout(() => ni.focus(), 200);
 }
 
 function lose() {
@@ -259,6 +296,7 @@ function lose() {
 
   $('endTitle').textContent = '挑战失败';
   $('endTaunt').textContent = randomTaunt('lose');
+  $('endStars').textContent = '';
   $('endTime').textContent = fmt(state.elapsedMs);
   $('endMistakes').textContent = `${state.mistakes}/${MAX_MISTAKES}`;
   $('endHints').textContent = state.hintsUsed;
@@ -269,8 +307,9 @@ function lose() {
 function recordIfNeeded() {
   if (scoreRecorded) return;
   scoreRecorded = true;
-  const name = ($('nameInput').value.trim()) || getPlayerName() || '匿名玩家';
-  setPlayerName(name);
+  // 关卡模式不记入自由排行榜
+  if (state.level) return;
+  const name = getPlayerName() || '匿名玩家';
   recordScore(state.difficulty, {
     time: state.elapsedMs,
     mistakes: state.mistakes,
@@ -289,6 +328,7 @@ bindKeyboard((kind, a, b) => {
   else if (kind === 'undo') { undo(state); draw(); }
   else if (kind === 'redo') { redo(state); draw(); }
   else if (kind === 'move') move(a, b);
+  else if (kind === 'help') toggleHelp();
   else if (kind === 'powerup') {
     if (a === 'sweep') powerupSweep();
     else if (a === 'freeze') powerupFreeze();
@@ -299,6 +339,73 @@ bindKeyboard((kind, a, b) => {
 function toggleNoteMode() {
   state.noteMode = !state.noteMode;
   $('noteBtn').classList.toggle('active', state.noteMode);
+}
+
+// ---------- 关卡网格渲染 ----------
+function renderLevelGrid() {
+  const grid = $('levelGrid');
+  grid.innerHTML = '';
+  const progress = getLevelProgress();
+  const unlocked = getUnlockedLevel();
+
+  for (let lv = 1; lv <= MAX_LEVEL; lv++) {
+    const data = progress[lv];
+    const cell = document.createElement('div');
+    const isLocked = lv > unlocked;
+    cell.className = 'level-cell' + (isLocked ? ' locked' : '') + (data ? ' completed' : '');
+    cell.dataset.level = lv;
+
+    const numEl = document.createElement('div');
+    numEl.className = 'lv-num';
+    numEl.textContent = isLocked ? '\uD83D\uDD12' : lv;
+    cell.appendChild(numEl);
+
+    if (data && data.stars) {
+      const starsEl = document.createElement('div');
+      starsEl.className = 'lv-stars';
+      starsEl.textContent = '\u2B50'.repeat(data.stars);
+      cell.appendChild(starsEl);
+    }
+
+    if (!isLocked) {
+      cell.addEventListener('click', () => newLevel(lv));
+    }
+    grid.appendChild(cell);
+  }
+}
+
+// ---------- Tab 切换 ----------
+function switchTab(which) {
+  const isCampaign = which === 'campaign';
+  $('tabCampaign').classList.toggle('active', isCampaign);
+  $('tabFree').classList.toggle('active', !isCampaign);
+  $('panelCampaign').classList.toggle('active', isCampaign);
+  $('panelFree').classList.toggle('active', !isCampaign);
+  if (isCampaign) renderLevelGrid();
+}
+
+// ---------- 新游戏弹窗 ----------
+function showNewGame() {
+  renderLevelGrid();
+  show($('newModal'));
+}
+
+// ---------- 帮助 ----------
+function toggleHelp() {
+  const el = $('helpModal');
+  if (el.hidden) { show(el); } else { hide(el); }
+}
+
+// ---------- 名字门控 ----------
+function showNameGate() {
+  $('nameInputGate').value = getPlayerName();
+  updateNameConfirm();
+  show($('nameModal'));
+  setTimeout(() => $('nameInputGate').focus(), 100);
+}
+function updateNameConfirm() {
+  const val = $('nameInputGate').value.trim();
+  $('nameConfirm').disabled = val.length === 0;
 }
 
 // ---------- 排行榜 ----------
@@ -390,19 +497,15 @@ function init() {
   pwButtons.freeze = $('pwFreeze');
   pwButtons.shield = $('pwShield');
 
-  // 预填名字
-  const savedName = getPlayerName();
-  if (savedName) {
-    $('nameInputNew').value = savedName;
-    $('nameInput').value = savedName;
-  }
-
   // 按钮绑定
-  $('newBtn').onclick = () => show($('newModal'));
+  $('newBtn').onclick = showNewGame;
   $('resumeBtn').onclick = () => { resume(); hide($('newModal')); };
   $('cancelNew').onclick = () => hide($('newModal'));
   $('scoresBtn').onclick = showScores;
+  $('scoresBtn2').onclick = showScores;
   $('closeScores').onclick = () => hide($('scoresModal'));
+  $('helpBtn').onclick = toggleHelp;
+  $('closeHelp').onclick = () => hide($('helpModal'));
   $('themeBtn').onclick = () => { const m = cycleTheme(); showToast(`主题: ${m}`, $('toast')); };
   $('soundBtn').onclick = () => {
     settings.sound = !settings.sound;
@@ -419,18 +522,45 @@ function init() {
   $('pwFreeze').onclick = powerupFreeze;
   $('pwShield').onclick = powerupShield;
 
+  // Tab 切换
+  $('tabCampaign').onclick = () => switchTab('campaign');
+  $('tabFree').onclick = () => switchTab('free');
+
+  // 自由模式难度按钮
   document.querySelectorAll('.diff-opt').forEach(b =>
     b.onclick = () => newGame(b.dataset.diff));
 
-  $('endNew').onclick = () => { recordIfNeeded(); hide($('endModal')); show($('newModal')); };
+  // 名字门控
+  $('nameInputGate').addEventListener('input', updateNameConfirm);
+  $('nameInputGate').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && $('nameConfirm').disabled === false) confirmName();
+  });
+  $('nameConfirm').onclick = confirmName;
+
+  // 结局面板
+  $('endNew').onclick = () => { recordIfNeeded(); hide($('endModal')); showNewGame(); };
   $('endClose').onclick = () => { recordIfNeeded(); hide($('endModal')); };
 
   // 离开时存档
   window.addEventListener('beforeunload', () => state && saveGame(state));
 
-  // 启动
+  // 启动流程: 没名字 → 门控; 有名字 → 续局或新游戏
+  if (!hasName()) {
+    showNameGate();
+  } else if (hasSave()) {
+    resume();
+  } else {
+    showNewGame();
+  }
+}
+
+function confirmName() {
+  const name = $('nameInputGate').value.trim();
+  if (!name) return;
+  setPlayerName(name);
+  hide($('nameModal'));
   if (hasSave()) resume();
-  else { show($('newModal')); }
+  else showNewGame();
 }
 
 init();
