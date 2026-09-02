@@ -144,6 +144,10 @@
           <p class="star-guide"><b>&#11088;&#11088;&#11088;</b> 完美：0 错误 0 提示 0 道具 &nbsp; <b>&#11088;&#11088;</b> 优秀：≤1 错误或提示 &nbsp; <b>&#11088;</b> 通关</p>
         </div>
         <div class="help-section">
+          <h3>&#129504; 智商评分</h3>
+          <p>每局结束（通关或失败）都会根据难度、用时、错误、提示、道具使用情况，给你一个<b>纯属娱乐的智商值</b>，并配上网络梗吐槽。满分通关额外+25，失败局打折。从"草履虫"到"爱因斯坦转世"，看看你在哪一档！<b>纯属搞笑，别当真～</b></p>
+        </div>
+        <div class="help-section">
           <h3>&#127941; 排行榜</h3>
           <p>所有模式（自由 + 闯关）通关后自动记录，按难度/闯关分别记录 Top 5，含用时、错误、提示、道具数。综合评分 = 基础秒数 + 提示×30 + 道具×20 + 错误×60，越低越好。</p>
         </div>
@@ -170,6 +174,12 @@
     <div class="modal-card">
       <h2 id="endTitle">完成!</h2>
       <p id="endTaunt" class="end-taunt"></p>
+      <div id="iqBox" class="iq-box" hidden>
+        <div class="iq-label">你的智商为</div>
+        <div class="iq-score"><span id="iqValue">0</span></div>
+        <div id="iqEmoji" class="iq-emoji"></div>
+        <div id="iqDesc" class="iq-desc"></div>
+      </div>
       <div id="endStars" class="end-stars"></div>
       <div class="end-stats">
         <div class="end-stat"><span class="es-label">用时</span><b id="endTime">00:00</b></div>
