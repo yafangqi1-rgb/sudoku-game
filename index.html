@@ -15,6 +15,7 @@
       <h1>数独</h1>
     </div>
     <div class="top-actions">
+      <button id="helpBtn" class="icon-btn" title="帮助 (?)" aria-label="帮助">&#10067;</button>
       <button id="themeBtn" class="icon-btn" title="切换主题" aria-label="切换主题">&#9680;</button>
       <button id="soundBtn" class="icon-btn" title="音效开关" aria-label="音效开关">&#9834;</button>
       <button id="scoresBtn" class="icon-btn" title="排行榜" aria-label="排行榜">&#9733;</button>
@@ -63,20 +64,95 @@
     <div class="bottom">
       <button id="newBtn" class="primary">新游戏</button>
       <button id="resumeBtn" class="ghost" hidden>继续上次</button>
+      <button id="scoresBtn2" class="ghost">&#9733; 排行榜</button>
     </div>
   </main>
 
+  <!-- 名字门控: 首次进入必须输入名字 -->
+  <div id="nameModal" class="modal" hidden>
+    <div class="modal-card name-gate">
+      <div class="name-gate-emoji">&#129309;</div>
+      <h2>欢迎来玩数独！</h2>
+      <p class="gate-hint">先告诉我你叫什么，好记排行榜</p>
+      <input id="nameInputGate" class="name-input" placeholder="输入你的名字" maxlength="12" autocomplete="off" />
+      <button id="nameConfirm" class="primary" disabled>开始</button>
+    </div>
+  </div>
+
   <!-- 新游戏面板 -->
   <div id="newModal" class="modal" hidden>
-    <div class="modal-card">
-      <h2>开始新游戏</h2>
-      <input id="nameInputNew" class="name-input" placeholder="你的名字（上榜用）" maxlength="12" />
-      <div class="diff-pick">
-        <button data-diff="easy" class="diff-opt">简单</button>
-        <button data-diff="medium" class="diff-opt">中等</button>
-        <button data-diff="hard" class="diff-opt">困难</button>
+    <div class="modal-card modal-wide">
+      <h2 id="newTitle">开始新游戏</h2>
+
+      <!-- Tab 切换 -->
+      <div class="tabs">
+        <button id="tabCampaign" class="tab active">闯关模式</button>
+        <button id="tabFree" class="tab">自由挑战</button>
       </div>
+
+      <!-- 闯关模式 -->
+      <div id="panelCampaign" class="tab-panel active">
+        <p class="tab-desc">从超简单开始，逐关解锁，记录星级！</p>
+        <div id="levelGrid" class="level-grid"></div>
+      </div>
+
+      <!-- 自由挑战 -->
+      <div id="panelFree" class="tab-panel" hidden>
+        <p class="tab-desc">选一个难度，随时来一局</p>
+        <div class="diff-pick">
+          <button data-diff="beginner" class="diff-opt">入门</button>
+          <button data-diff="easy" class="diff-opt">简单</button>
+          <button data-diff="medium" class="diff-opt">中等</button>
+          <button data-diff="hard" class="diff-opt">困难</button>
+        </div>
+      </div>
+
       <button id="cancelNew" class="ghost">取消</button>
+    </div>
+  </div>
+
+  <!-- 帮助面板 -->
+  <div id="helpModal" class="modal" hidden>
+    <div class="modal-card modal-wide help-card">
+      <h2>玩法帮助</h2>
+      <div class="help-content">
+        <div class="help-section">
+          <h3>&#9989; 基本规则</h3>
+          <p>每行、每列、每个 3×3 宫格填入 1-9 且不重复。点格子选中，再点数字键填入。错满 <b>3 次</b>判负。</p>
+        </div>
+        <div class="help-section">
+          <h3>&#128221; 工具说明</h3>
+          <ul>
+            <li><b>&#8617; 撤销 / &#8618; 重做</b>：后悔药，可来回切</li>
+            <li><b>&#9998; 笔记</b>：在格子里记候选数，辅助推理</li>
+            <li><b>&#128161; 提示</b>：自动填正确答案，每局限 3 次</li>
+            <li><b>&#9003; 擦除</b>：清除选中格的数字或笔记</li>
+          </ul>
+        </div>
+        <div class="help-section">
+          <h3>&#127918; 道具说明</h3>
+          <ul>
+            <li><b>&#128269; 排雷</b>（每局 2 次）：闪烁所有你填错的格子 2 秒，帮你发现错误。快捷键 S</li>
+            <li><b>&#9889; 冻结</b>（每局 1 次）：暂停计时 30 秒，倒计时显示 &#10052;。适合需要长考的时候。快捷键 F</li>
+            <li><b>&#128737;&#65039; 护盾</b>（每局 1 次）：激活后，下次填错自动抵消，不扣错误次数。快捷键 D</li>
+          </ul>
+          <p class="help-tip">道具用得越多，排行榜评分越高（越差）——高手追求零道具通关！</p>
+        </div>
+        <div class="help-section">
+          <h3>&#11088; 闯关模式</h3>
+          <p>20 关渐进难度，第 1 关超简单（只挖 21 格），逐关加难。<b>通关解锁下一关</b>，根据表现获 1-3 星。</p>
+          <p class="star-guide"><b>&#11088;&#11088;&#11088;</b> 完美：0 错误 0 提示 0 道具 &nbsp; <b>&#11088;&#11088;</b> 优秀：≤1 错误或提示 &nbsp; <b>&#11088;</b> 通关</p>
+        </div>
+        <div class="help-section">
+          <h3>&#127941; 排行榜</h3>
+          <p>自由模式按难度分别记录 Top 5，含用时、错误、提示、道具数。综合评分 = 基础秒数 + 提示×30 + 道具×20 + 错误×60，越低越好。</p>
+        </div>
+        <div class="help-section">
+          <h3>&#9000; 快捷键</h3>
+          <p><b>1-9</b> 填数 &nbsp; <b>0/Backspace</b> 擦除 &nbsp; <b>N</b> 笔记 &nbsp; <b>H</b> 提示 &nbsp; <b>Z</b> 撤销 &nbsp; <b>Y</b> 重做 &nbsp; <b>S/F/D</b> 排雷/冻结/护盾 &nbsp; <b>方向键</b> 移动 &nbsp; <b>?</b> 帮助</p>
+        </div>
+      </div>
+      <button id="closeHelp" class="primary">明白了！</button>
     </div>
   </div>
 
@@ -94,13 +170,13 @@
     <div class="modal-card">
       <h2 id="endTitle">完成!</h2>
       <p id="endTaunt" class="end-taunt"></p>
+      <div id="endStars" class="end-stars"></div>
       <div class="end-stats">
         <div class="end-stat"><span class="es-label">用时</span><b id="endTime">00:00</b></div>
         <div class="end-stat"><span class="es-label">错误</span><b id="endMistakes">0</b></div>
         <div class="end-stat"><span class="es-label">提示</span><b id="endHints">0</b></div>
         <div class="end-stat"><span class="es-label">道具</span><b id="endPowerups">0</b></div>
       </div>
-      <input id="nameInput" class="name-input" placeholder="留下名字上榜" maxlength="12" />
       <button id="endNew" class="primary">再来一局</button>
       <button id="endClose" class="ghost">关闭</button>
     </div>
