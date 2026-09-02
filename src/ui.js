@@ -120,20 +120,3 @@ export function showTaunt(msg, el, emoji) {
     setTimeout(() => { el.hidden = true; }, 300);
   }, 2200);
 }
-
-// 排雷闪烁: 标记所有错误格
-export function flashWrongCells(state, cells, duration = 2000) {
-  for (let r = 0; r < N; r++) {
-    for (let c = 0; c < N; c++) {
-      const v = state.puzzle[r][c];
-      if (v !== 0 && !state.givens[r][c] && v !== state.solution[r][c]) {
-        cells[r][c].classList.add('sweep-flash');
-      }
-    }
-  }
-  setTimeout(() => {
-    for (let r = 0; r < N; r++)
-      for (let c = 0; c < N; c++)
-        cells[r][c].classList.remove('sweep-flash');
-  }, duration);
-}
