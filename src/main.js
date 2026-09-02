@@ -425,6 +425,9 @@ function switchTab(which) {
   $('tabFree').classList.toggle('active', !isCampaign);
   $('panelCampaign').classList.toggle('active', isCampaign);
   $('panelFree').classList.toggle('active', !isCampaign);
+  // 同步 hidden 属性, 防止 [hidden]{display:none!important} 压过 .active
+  $('panelCampaign').hidden = false;
+  $('panelFree').hidden = false;
   if (isCampaign) renderLevelGrid();
 }
 
